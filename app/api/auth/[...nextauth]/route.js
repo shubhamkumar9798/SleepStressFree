@@ -17,7 +17,9 @@ const handler = NextAuth({
             https://www.googleapis.com/auth/fitness.location.read
             https://www.googleapis.com/auth/fitness.blood_pressure.read
             https://www.googleapis.com/auth/fitness.body_temperature.read
-          `.replace(/\s+/g, ' ').trim(), // Ensures scopes are correctly formatted
+          `.replace(/\s+/g, ' ').trim(),
+          access_type: 'offline',  // Ensures refresh token is issued
+          prompt: 'consent'       // Forces re-authentication for fresh consent
         },
       },
     }),
@@ -26,8 +28,8 @@ const handler = NextAuth({
     async jwt({ token, account }) {
       if (account) {
         token.accessToken = account.access_token;
-        token.refreshToken = account.refresh_token; // Store refresh token
-        token.expiresAt = account.expires_at * 1000; // Convert to milliseconds
+        token.refreshToken = account.refresh_token; 
+        token.expiresAt = account.expires_at * 1000 || Date.now() + 3600 * 1000; // Ensure valid expiry time
       }
 
       // Refresh logic for expired tokens
@@ -57,12 +59,13 @@ const handler = NextAuth({
         return token;
       } catch (error) {
         console.error("Error refreshing access token:", error);
-        return token;
+        return { ...token, error: "RefreshAccessTokenError" };
       }
     },
 
     async session({ session, token }) {
       session.accessToken = token.accessToken;
+      session.error = token.error;  // Track refresh errors for improved debugging
       return session;
     },
   },
