@@ -11,7 +11,7 @@ export default function LandingPage() {
   const fetchGoogleFitData = async (accessToken) => {
     try {
       const response = await fetch(
-        'https://www.googleapis.com/fitness/v1/users/me/dataset:aggregate',
+        'https://www.googleapis.com/auth/fitness.activity.read',
         {
           method: 'POST',
           headers: {
