@@ -26,8 +26,8 @@ export default function LandingPage() {
               { "dataTypeName": "com.google.step_count.delta" },
               { "dataTypeName": "com.google.calories.expended" },
               { "dataTypeName": "com.google.distance.delta" },
-              { "dataTypeName": "com.google.heart_rate.bpm" },
-              { "dataTypeName": "com.google.sleep.segment" }
+              { "dataTypeName": "com.google.heart_rate.bpm" },  // Updated for accurate heart rate data
+              { "dataTypeName": "com.google.sleep.segment" }    // Correct sleep data type
             ],
             "bucketByTime": { "durationMillis": 86400000 },
             "startTimeMillis": Date.now() - 7 * 24 * 60 * 60 * 1000,
@@ -52,8 +52,8 @@ export default function LandingPage() {
           : 'N/A',
         sleep: bucket.dataset[4]?.point.length
           ? bucket.dataset[4].point.map(point => {
-              const start = formatDate(point.startTimeNanos / 1e6);
-              const end = formatDate(point.endTimeNanos / 1e6);
+              const start = formatDate(point.startTimeNanos / 1e6); // Convert nanos to millis
+              const end = formatDate(point.endTimeNanos / 1e6);     // Convert nanos to millis
               return `${start} - ${end}`;
             }).join(', ')
           : 'N/A'
