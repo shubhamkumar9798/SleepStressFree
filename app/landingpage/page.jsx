@@ -7,8 +7,8 @@ export default function LandingPage() {
   const { data: session, status } = useSession();
   const [googleFitData, setGoogleFitData] = useState([]);
 
-  // Function to format timestamps
-  const formatDate = (timestamp) => new Date(parseInt(timestamp)).toLocaleString();
+  // Format timestamp to readable date
+  const formatDate = (timestamp) => new Date(Math.floor(parseInt(timestamp))).toLocaleString();
 
   // Function to fetch Google Fit data
   const fetchGoogleFitData = async (accessToken) => {
@@ -37,22 +37,23 @@ export default function LandingPage() {
       );
 
       if (!response.ok) {
-        throw new Error(`Error: ${response.status} ${response.statusText}`);
+        console.error(`API Error: ${response.status} - ${response.statusText}`);
+        throw new Error(`Failed to fetch data: ${response.statusText}`);
       }
 
       const data = await response.json();
-      console.log("Google Fit API Response:", data); // Debugging log
+      console.log("Google Fit API Response:", JSON.stringify(data, null, 2));
 
       const formattedData = data.bucket.map(bucket => ({
         startTime: formatDate(bucket.startTimeMillis),
         endTime: formatDate(bucket.endTimeMillis),
-        steps: bucket.dataset[0]?.point[0]?.value[0]?.intVal || 0,
-        calories: bucket.dataset[1]?.point[0]?.value[0]?.fpVal || 0,
-        distance: bucket.dataset[2]?.point[0]?.value[0]?.fpVal || 0,
-        heartRate: bucket.dataset[3]?.point.length
-          ? (bucket.dataset[3].point.reduce((sum, point) => sum + point.value[0]?.fpVal, 0) / bucket.dataset[3].point.length).toFixed(2)
+        steps: bucket.dataset[0]?.point?.[0]?.value?.[0]?.intVal || 0,
+        calories: bucket.dataset[1]?.point?.[0]?.value?.[0]?.fpVal || 0,
+        distance: bucket.dataset[2]?.point?.[0]?.value?.[0]?.fpVal || 0,
+        heartRate: bucket.dataset[3]?.point?.length
+          ? (bucket.dataset[3].point.reduce((sum, point) => sum + point.value?.[0]?.fpVal, 0) / bucket.dataset[3].point.length).toFixed(2)
           : 'N/A',
-        sleep: bucket.dataset[4]?.point.length
+        sleep: bucket.dataset[4]?.point?.length
           ? bucket.dataset[4].point.map(point => {
               const start = formatDate(point.startTimeNanos / 1e6);
               const end = formatDate(point.endTimeNanos / 1e6);
@@ -70,7 +71,7 @@ export default function LandingPage() {
   // Fetch data when session is available
   useEffect(() => {
     if (session && session.accessToken) {
-      console.log("Session Access Token:", session.accessToken); // Debugging log
+      console.log("Session Access Token:", session.accessToken);
       fetchGoogleFitData(session.accessToken);
     } else {
       console.error("Access token is missing in the session.");
