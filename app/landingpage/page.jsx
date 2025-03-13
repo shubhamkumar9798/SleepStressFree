@@ -5,7 +5,12 @@ import { useEffect, useState } from 'react';
 
 export default function LandingPage() {
   const { data: session, status } = useSession();
-  const [googleFitData, setGoogleFitData] = useState(null);
+  const [googleFitData, setGoogleFitData] = useState([]);
+
+  // Function to format timestamps
+  const formatDate = (timestamp) => {
+    return new Date(parseInt(timestamp)).toLocaleString();
+  };
 
   // Function to fetch Google Fit data
   const fetchGoogleFitData = async (accessToken) => {
@@ -20,14 +25,14 @@ export default function LandingPage() {
           },
           body: JSON.stringify({
             "aggregateBy": [
-              { "dataTypeName": "com.google.step_count.delta" },        // Step count
-              { "dataTypeName": "com.google.calories.expended" },        // Calories burned
-              { "dataTypeName": "com.google.distance.delta" },           // Distance traveled
-              { "dataTypeName": "com.google.heart_rate.bpm" },           // Heart rate
-              { "dataTypeName": "com.google.sleep.segment" }             // Sleep data
+              { "dataTypeName": "com.google.step_count.delta" },
+              { "dataTypeName": "com.google.calories.expended" },
+              { "dataTypeName": "com.google.distance.delta" },
+              { "dataTypeName": "com.google.heart_rate.bpm" },
+              { "dataTypeName": "com.google.sleep.segment" }
             ],
             "bucketByTime": { "durationMillis": 86400000 },
-            "startTimeMillis": Date.now() - 7 * 24 * 60 * 60 * 1000,     // Past 7 days
+            "startTimeMillis": Date.now() - 7 * 24 * 60 * 60 * 1000,
             "endTimeMillis": Date.now(),
           }),
         }
@@ -38,8 +43,17 @@ export default function LandingPage() {
       }
 
       const data = await response.json();
-      console.log('Google Fit Data:', data);
-      setGoogleFitData(data);
+      const formattedData = data.bucket.map(bucket => ({
+        startTime: formatDate(bucket.startTimeMillis),
+        endTime: formatDate(bucket.endTimeMillis),
+        steps: bucket.dataset[0]?.point[0]?.value[0]?.intVal || 0,
+        calories: bucket.dataset[1]?.point[0]?.value[0]?.fpVal || 0,
+        distance: bucket.dataset[2]?.point[0]?.value[0]?.fpVal || 0,
+        heartRate: bucket.dataset[3]?.point[0]?.value[0]?.fpVal || 'N/A',
+        sleep: bucket.dataset[4]?.point[0]?.value[0]?.intVal || 'N/A'
+      }));
+
+      setGoogleFitData(formattedData);
     } catch (error) {
       console.error('Error fetching Google Fit data:', error.message || error);
     }
@@ -67,8 +81,33 @@ export default function LandingPage() {
 
         <div>
           <h2>Your Google Fit Data:</h2>
-          {googleFitData ? (
-            <pre>{JSON.stringify(googleFitData, null, 2)}</pre>
+          {googleFitData.length > 0 ? (
+            <table>
+              <thead>
+                <tr>
+                  <th>Start Time</th>
+                  <th>End Time</th>
+                  <th>Steps</th>
+                  <th>Calories (kcal)</th>
+                  <th>Distance (m)</th>
+                  <th>Heart Rate (bpm)</th>
+                  <th>Sleep (min)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {googleFitData.map((entry, index) => (
+                  <tr key={index}>
+                    <td>{entry.startTime}</td>
+                    <td>{entry.endTime}</td>
+                    <td>{entry.steps}</td>
+                    <td>{entry.calories}</td>
+                    <td>{entry.distance}</td>
+                    <td>{entry.heartRate}</td>
+                    <td>{entry.sleep}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           ) : (
             <p>No data available yet.</p>
           )}
