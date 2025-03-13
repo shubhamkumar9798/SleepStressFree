@@ -8,9 +8,7 @@ export default function LandingPage() {
   const [googleFitData, setGoogleFitData] = useState([]);
 
   // Function to format timestamps
-  const formatDate = (timestamp) => {
-    return new Date(parseInt(timestamp)).toLocaleString();
-  };
+  const formatDate = (timestamp) => new Date(parseInt(timestamp)).toLocaleString();
 
   // Function to fetch Google Fit data
   const fetchGoogleFitData = async (accessToken) => {
@@ -49,8 +47,16 @@ export default function LandingPage() {
         steps: bucket.dataset[0]?.point[0]?.value[0]?.intVal || 0,
         calories: bucket.dataset[1]?.point[0]?.value[0]?.fpVal || 0,
         distance: bucket.dataset[2]?.point[0]?.value[0]?.fpVal || 0,
-        heartRate: bucket.dataset[3]?.point[0]?.value[0]?.fpVal || 'N/A',
-        sleep: bucket.dataset[4]?.point[0]?.value[0]?.intVal || 'N/A'
+        heartRate: bucket.dataset[3]?.point.length
+          ? (bucket.dataset[3].point.reduce((sum, point) => sum + point.value[0]?.fpVal, 0) / bucket.dataset[3].point.length).toFixed(2)
+          : 'N/A',
+        sleep: bucket.dataset[4]?.point.length
+          ? bucket.dataset[4].point.map(point => {
+              const start = formatDate(point.startTimeNanos / 1e6);
+              const end = formatDate(point.endTimeNanos / 1e6);
+              return `${start} - ${end}`;
+            }).join(', ')
+          : 'N/A'
       }));
 
       setGoogleFitData(formattedData);
@@ -91,7 +97,7 @@ export default function LandingPage() {
                   <th>Calories (kcal)</th>
                   <th>Distance (m)</th>
                   <th>Heart Rate (bpm)</th>
-                  <th>Sleep (min)</th>
+                  <th>Sleep Duration</th>
                 </tr>
               </thead>
               <tbody>
