@@ -11,7 +11,7 @@ export default function LandingPage() {
   const fetchGoogleFitData = async (accessToken) => {
     try {
       const response = await fetch(
-        'https://www.googleapis.com/auth/fitness.activity.read',
+        'https://www.googleapis.com/fitness/v1/users/me/dataset:aggregate',
         {
           method: 'POST',
           headers: {
@@ -19,11 +19,15 @@ export default function LandingPage() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            "aggregateBy": [{
-              "dataTypeName": "com.google.step_count.delta"
-            }],
+            "aggregateBy": [
+              { "dataTypeName": "com.google.step_count.delta" },        // Step count
+              { "dataTypeName": "com.google.calories.expended" },        // Calories burned
+              { "dataTypeName": "com.google.distance.delta" },           // Distance traveled
+              { "dataTypeName": "com.google.heart_rate.bpm" },           // Heart rate
+              { "dataTypeName": "com.google.sleep.segment" }             // Sleep data
+            ],
             "bucketByTime": { "durationMillis": 86400000 },
-            "startTimeMillis": Date.now() - 7 * 24 * 60 * 60 * 1000,
+            "startTimeMillis": Date.now() - 7 * 24 * 60 * 60 * 1000,     // Past 7 days
             "endTimeMillis": Date.now(),
           }),
         }
