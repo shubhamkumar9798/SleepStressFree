@@ -71,7 +71,7 @@ const PrivacyPolicy = () => (
       Contact us directly for any data-related requests.
     </p>
 
-    <h2>7. Contact Us</h2>
+    <h2>7. Contact Us </h2>
     <p>
       If you have questions or concerns about our privacy practices, please reach out to us:
       <br />
@@ -81,7 +81,7 @@ const PrivacyPolicy = () => (
     </p>
 
     <p>
-      By using SleepStressFree, you consent to this Privacy Policy and the data practices described herein.
+      By using SleepStressFree, you consent to this Privacy Policy and the data practices described herein .
     </p>
   </div>
 );
