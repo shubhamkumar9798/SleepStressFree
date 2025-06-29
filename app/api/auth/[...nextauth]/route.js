@@ -27,19 +27,16 @@ const handler = NextAuth({
   callbacks: {
     async jwt({ token, account }) {
       if (account) {
+        console.log("✅ Granted scopes:", account.scope); // 👈 log granted scopes here
         token.accessToken = account.access_token;
         token.refreshToken = account.refresh_token;
         token.expiresAt = account.expires_at * 1000 || Date.now() + 3600 * 1000;
+        token.scope = account.scope;
       }
 
-      console.log(`Token Expires At: ${new Date(token.expiresAt).toLocaleString()}`);
+      if (Date.now() < token.expiresAt) return token;
 
-      if (Date.now() < token.expiresAt) {
-        console.log("Token is still valid");
-        return token; 
-      }
-
-      console.log("Token expired, attempting to refresh");
+      // Token expired – refresh
       try {
         const response = await fetch('https://oauth2.googleapis.com/token', {
           method: 'POST',
@@ -53,7 +50,6 @@ const handler = NextAuth({
         });
 
         const refreshedTokens = await response.json();
-        console.log("Refreshed Tokens:", refreshedTokens);
 
         if (!response.ok) throw refreshedTokens;
 
@@ -69,8 +65,8 @@ const handler = NextAuth({
 
     async session({ session, token }) {
       session.accessToken = token.accessToken;
-      session.error = token.error; 
-      console.log("Session Access Token:", session.accessToken);
+      session.scope = token.scope;
+      session.error = token.error;
       return session;
     },
   },
