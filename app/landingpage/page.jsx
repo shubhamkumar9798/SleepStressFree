@@ -8,7 +8,7 @@ export default function LandingPage() {
   const [googleFitData, setGoogleFitData] = useState([]);
 
   const formatDate = (timestamp) =>
-    new Date(Math.floor(parseInt(timestamp))).toLocaleString();
+    new Date(Number(timestamp)).toLocaleString();
 
   const fetchGoogleFitData = async (accessToken) => {
     try {
@@ -40,7 +40,7 @@ export default function LandingPage() {
       }
 
       const data = await response.json();
-      console.log("Google Fit Response:", data);
+      console.log("✅ Google Fit Response:", data);
 
       const formattedData = data.bucket.map((bucket) => {
         const heartRatePoints = bucket.dataset[3]?.point || [];
@@ -80,21 +80,19 @@ export default function LandingPage() {
 
       setGoogleFitData(formattedData);
     } catch (error) {
-      console.error("Error fetching data:", error.message);
+      console.error("❌ Error fetching data:", error.message);
     }
   };
 
   useEffect(() => {
-    if (session?.accessToken) {
+    if (status === "authenticated" && session?.accessToken) {
       fetchGoogleFitData(session.accessToken);
-    } else {
-      console.warn("Access token is missing in session.");
     }
-  }, [session]);
+  }, [session, status]);
 
   if (status === "loading") return <p>Loading...</p>;
 
-  if (!session) {
+  if (status === "unauthenticated") {
     return (
       <div>
         <h1>Welcome to My App</h1>
